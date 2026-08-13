@@ -46,14 +46,23 @@
 
 <h2>1. Problem</h2>
 <p>
-  A content editor managing hundreds of pages cannot review everything.
-  Without a prioritization signal, teams either review randomly or rely on gut feeling —
-  both waste editor time and miss real problems.
-  This work asks: <em>which pages show the strongest observed decline signals,
-  and how can we rank them reliably?</em>
+  FlyRank's content teams manage hundreds of pages across multiple clients.
+  Each week, editors must decide which pages to update — but without a
+  prioritization signal, they either review randomly or rely on gut feeling.
+  Both approaches waste editor time and miss pages that are quietly losing
+  search traffic.
 </p>
 <p>
-  The output supports one decision: where an editor spends their time this week.
+  FlyRank's existing system uses hand-written rules — staleness thresholds,
+  CTR flags, position checks — to generate refresh recommendations.
+  These rules are transparent but rigid: they treat every signal in isolation
+  and cannot learn which combinations actually predict decline.
+</p>
+<p>
+  This work asks: <em>can a learned model rank pages for content review
+  more reliably than FlyRank's hand-written rule baseline?</em>
+  The output is a ranked action queue — decision-support for a human editor,
+  not an automated verdict.
 </p>
 
 <h2>2. Data</h2>
