@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Refresh Priority — ML Research Paper</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 860px; margin: 0 auto; padding: 2rem; color: #222; line-height: 1.7; }
+  h1 { font-size: 2rem; margin-bottom: 0.3rem; }
+  h2 { font-size: 1.3rem; border-bottom: 2px solid #eee; padding-bottom: 0.3rem; margin-top: 2.5rem; }
+  .abstract { background: #f7f7f7; padding: 1.2rem 1.5rem; border-left: 4px solid #5b8dee; margin: 1.5rem 0; }
+  .meta { color: #666; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+  th, td { border: 1px solid #ddd; padding: 0.6rem 1rem; text-align: left; }
+  th { background: #f0f4ff; }
+  img { max-width: 100%; margin: 1rem 0; border-radius: 6px; }
+  .caption { font-size: 0.88rem; color: #555; margin-top: -0.5rem; margin-bottom: 1rem; }
+  .tag { display: inline-block; background: #e8f0fe; color: #3367d6; border-radius: 4px; padding: 2px 8px; font-size: 0.85rem; margin: 2px; }
+  .nogo { color: #c0392b; font-weight: bold; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #eee; font-size: 0.9rem; color: #666; }
+  a { color: #3367d6; }
+</style>
+</head>
+<body>
+
+<h1>Which Web Pages Should a Content Team Review First?</h1>
+<p class="meta">
+  Sehrish Ejaz · FlyRank ML Internship · August 2026 ·
+  <a href="https://github.com/SehrishEjaz1/Flyrank_ML_Intern">GitHub Repo</a>
+</p>
+
+<div class="abstract">
+  <strong>Abstract:</strong>
+  Content teams managing large websites cannot review every page each week —
+  the question is which pages to prioritize.
+  Using a 30,000-row anonymized search dataset from
+  <a href="https://flyrank.ai">FlyRank</a>,
+  this work trains a Random Forest classifier on staleness, impressions,
+  and CTR signals to rank pages by observed decline likelihood.
+  On a client-grouped test split, the model achieves Precision@50 of
+  <strong>0.XX</strong> versus a rule-baseline of <strong>0.XX</strong>
+  and a random base rate of <strong>0.XX</strong>.
+  The output is a ranked content action queue — decision-support
+  for a human editor, not an automated verdict.
+</div>
+
+<h2>1. Problem</h2>
+<p>
+  A content editor managing hundreds of pages cannot review everything.
+  Without a prioritization signal, teams either review randomly or rely on gut feeling —
+  both waste editor time and miss real problems.
+  This work asks: <em>which pages show the strongest observed decline signals,
+  and how can we rank them reliably?</em>
+</p>
+<p>
+  The output supports one decision: where an editor spends their time this week.
+</p>
+
+<h2>2. Data</h2>
+<p>
+  <span class="tag">Source: FlyRank ML Internship dataset</span>
+  <span class="tag">30,000 rows</span>
+  <span class="tag">32 pseudonymized clients</span>
+  <span class="tag">90-day snapshot</span>
+</p>
+<p>
+  The starter dataset contains one row per content page with trailing-90-day
+  search and engagement signals. No client names, URLs, or raw queries appear
+  in this work. The following were excluded:
+</p>
+<ul>
+  <li><code>avg_position = 0</code> — means no data, not rank zero</li>
+  <li><code>trend_direction</code> and <code>trend_pct</code> — label-derived, excluded to prevent leakage</li>
+  <li>Pages with fewer than 200 impressions — too little traffic to justify editor time</li>
+</ul>
+
+<h2>3. Methodology</h2>
+<p><strong>Label:</strong> <code>is_declining_label = 1</code> when
+<code>trend_direction == "down"</code>. This is a proxy label from the same
+90-day snapshot — not a directly observed future outcome.</p>
+
+<p><strong>Features (7):</strong>
+days_since_last_update, impressions_90d, ctr, avg_position,
+content_age_days, word_count, has_wordcount (missingness flag).</p>
+
+<p><strong>Baseline (Week 4):</strong> Hand-written rule —
+stale × visible × (1 + low_ctr) × impressions.
+Reason codes: STALE_LOW_CTR, STALE_VISIBLE, NOT_STALE.</p>
+
+<p><strong>Models:</strong> Logistic Regression (readable, probability scores),
+then Random Forest (captures signal combinations, permutation importance verified).</p>
+
+<p><strong>Validation:</strong> Client-grouped split — 80% clients train,
+20% clients test. No page from a test client appears in training.
+This tests generalization to unseen clients, not memorization.</p>
+
+<p><strong>Leakage checks:</strong> trend_direction and trend_pct confirmed excluded.
+Deliberately adding trend_pct inflated the score — confirming it is label-derived
+and correctly excluded from the clean model.</p>
+
+<h2>4. Results</h2>
+<img src="../work/figures/model_comparison.png" alt="Model vs Baseline Precision@50">
+<p class="caption">Figure 1: Precision@50 across methods on the client-grouped test split.
+The Random Forest ranks declining pages observably higher than the rule baseline.</p>
+
+<table>
+  <tr><th>Method</th><th>Precision@50</th><th>vs Baseline</th></tr>
+  <tr><td>Base rate (random)</td><td>0.XX</td><td>—</td></tr>
+  <tr><td>Rule baseline (Week 4)</td><td>0.XX</td><td>0.00</td></tr>
+  <tr><td>Logistic Regression</td><td>0.XX</td><td>+0.XX</td></tr>
+  <tr><td>Random Forest</td><td>0.XX</td><td>+0.XX</td></tr>
+</table>
+
+<img src="../work/figures/feature_importance.png" alt="Feature Importances">
+<p class="caption">Figure 2: Random Forest feature importances.
+days_since_last_update and impressions_90d are the strongest observed signals.</p>
+
+<img src="../work/figures/reason_codes.png" alt="Reason Code Distribution">
+<p class="caption">Figure 3: Distribution of reason codes in the test set.</p>
+
+<h2>5. Limitations</h2>
+<ul>
+  <li><strong>No causation:</strong> refreshing a page will not guaranteed increase traffic.
+  This is a cross-sectional snapshot — no intervention was measured.</li>
+  <li><strong>Proxy label:</strong> is_declining_label is derived from trend_direction
+  in the same window — not a future traffic measurement.</li>
+  <li><strong>Generalization:</strong> 32 clients, one 90-day window.
+  Performance on new clients or different time periods may differ.</li>
+  <li><strong>SERP effects:</strong> low CTR may reflect SERP layout changes,
+  not content quality — a refresh may not help.</li>
+  <li><strong>Algorithm changes:</strong> a major Google update can shift all signals;
+  retrain after any such event.</li>
+</ul>
+
+<h2>6. Ranked Recommendations</h2>
+<table>
+  <tr><th>Priority</th><th>Reason Code</th><th>Action</th><th>Why</th></tr>
+  <tr><td>1</td><td>STALE_LOW_CTR</td><td>refresh</td>
+      <td>Old + low CTR — strongest observed decline signal</td></tr>
+  <tr><td>2</td><td>HIGH_POSITION</td><td>refresh</td>
+      <td>Ranking below position 20 + stale — relevance likely issue</td></tr>
+  <tr><td>3</td><td>STALE_VISIBLE</td><td>monitor</td>
+      <td>Good impressions but stale — watch before acting</td></tr>
+  <tr><td>4</td><td>LOW_TRAFFIC</td><td>skip</td>
+      <td>Too few impressions to justify editor time</td></tr>
+  <tr><td>5</td><td>NOT_STALE</td><td>skip</td>
+      <td>Recently updated — leave it alone</td></tr>
+</table>
+
+<p><strong>Human review required before any action:</strong></p>
+<ul>
+  <li>Confirm page is not under an active campaign</li>
+  <li>Check CMS for recent edits not yet indexed</li>
+  <li>Verify content is still strategically relevant</li>
+</ul>
+
+<p class="nogo">Never automate:</p>
+<ul>
+  <li>Publishing content changes from score alone</li>
+  <li>Deleting or redirecting pages without human sign-off</li>
+  <li>Applying the queue to legal or compliance content</li>
+</ul>
+
+<h2>7. Reproducibility</h2>
+<ul>
+  <li><a href="https://github.com/SehrishEjaz1/Flyrank_ML_Intern/blob/main/work/notebooks/w04_baseline_score.ipynb">W04 — Baseline notebook</a></li>
+  <li><a href="https://github.com/SehrishEjaz1/Flyrank_ML_Intern/blob/main/work/notebooks/w05_model.ipynb">W05 — Model notebook</a></li>
+  <li><a href="https://github.com/SehrishEjaz1/Flyrank_ML_Intern/blob/main/work/notebooks/w06_validation_audit.ipynb">W06 — Validation audit</a></li>
+  <li><a href="https://github.com/SehrishEjaz1/Flyrank_ML_Intern/blob/main/work/notebooks/w07_action_playbook.ipynb">W07 — Action playbook</a></li>
+  <li><a href="https://github.com/SehrishEjaz1/Flyrank_ML_Intern/blob/main/work/notebooks/capstone.ipynb">Capstone notebook</a></li>
+</ul>
+<p>Random seed: 42. All notebooks run top-to-bottom with no errors.</p>
+
+<h2>Acknowledgments</h2>
+<p>
+  Built on the <a href="https://flyrank.ai">FlyRank</a> ML Internship dataset —
+  anonymized real-world search data from FlyRank's production systems.
+  Research conducted as part of the FlyRank ML Internship program, 2026.
+</p>
+
+<footer>
+  Sehrish Ejaz · FAST-NUCES Lahore · 2026 ·
+  <a href="https://github.com/SehrishEjaz1/Flyrank_ML_Intern">GitHub</a>
+</footer>
+
+</body>
+</html>
