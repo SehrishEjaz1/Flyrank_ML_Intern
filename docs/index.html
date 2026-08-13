@@ -38,8 +38,8 @@
   this work trains a Random Forest classifier on staleness, impressions,
   and CTR signals to rank pages by observed decline likelihood.
   On a client-grouped test split, the model achieves Precision@50 of
-  <strong>0.XX</strong> versus a rule-baseline of <strong>0.XX</strong>
-  and a random base rate of <strong>0.XX</strong>.
+  <strong>0.720</strong> versus a rule-baseline of <strong>0.500</strong>
+  and a random base rate of <strong>0.531</strong>.
   The output is a ranked content action queue — decision-support
   for a human editor, not an automated verdict.
 </div>
@@ -105,10 +105,10 @@ The Random Forest ranks declining pages observably higher than the rule baseline
 
 <table>
   <tr><th>Method</th><th>Precision@50</th><th>vs Baseline</th></tr>
-  <tr><td>Base rate (random)</td><td>0.XX</td><td>—</td></tr>
-  <tr><td>Rule baseline (Week 4)</td><td>0.XX</td><td>0.00</td></tr>
-  <tr><td>Logistic Regression</td><td>0.XX</td><td>+0.XX</td></tr>
-  <tr><td>Random Forest</td><td>0.XX</td><td>+0.XX</td></tr>
+  <tr><td>Base rate (random)</td><td>0.531</td><td>—</td></tr>
+  <tr><td>Rule baseline (Week 4)</td><td>0.500</td><td>0.000</td></tr>
+  <tr><td>Logistic Regression</td><td>0.280</td><td>-0.220</td></tr>
+  <tr><td>Random Forest</td><td>0.720</td><td>+0.220</td></tr>
 </table>
 
 <img src="../work/figures/feature_importance.png" alt="Feature Importances">
